@@ -23,6 +23,7 @@ export default function MovieDetailScreen() {
   const {
     votedMovies,
     userToken,
+    userRole,
     refreshVotes,
     setVotedMovies,
     refreshMoviesGlobally,
@@ -36,7 +37,11 @@ export default function MovieDetailScreen() {
 
   const fetchMovie = async () => {
     try {
-      if (source === "custom") {
+      const isMongoId =
+        typeof id === "string" && id.length === 24 && /^[a-f\d]{24}$/i.test(id);
+      const isCustomSource = source === "custom" || source === "partner";
+
+      if (isCustomSource || isMongoId) {
         const res = await fetch(`http://localhost:5001/api/movies/${id}`);
         const data = await res.json();
         setMovie(data);
@@ -45,9 +50,13 @@ export default function MovieDetailScreen() {
           `https://api.themoviedb.org/3/movie/${id}?api_key=1f0af41aa1b8961b4cc87398cc3a827d&language=fr-FR`
         );
         const data = await res.json();
+        if (data.status_code === 34) {
+          throw new Error("Film non trouvé sur TMDB");
+        }
         setMovie(data);
       }
-    } catch {
+    } catch (err) {
+      console.error("❌ Erreur fetchMovie :", err);
       Alert.alert("Erreur", "Film introuvable.");
     } finally {
       setLoading(false);
@@ -80,6 +89,8 @@ export default function MovieDetailScreen() {
       return;
     }
 
+    if (userRole !== "user") return;
+
     try {
       const res = await fetch(`http://localhost:5001/api/votes/${id}`, {
         method: "POST",
@@ -95,8 +106,8 @@ export default function MovieDetailScreen() {
       } else {
         Alert.alert("Merci pour votre vote !");
         setVotedMovies((prev) => [...prev, Number(id)]);
-        fetchVoteCount(); // Met à jour localement
-        refreshMoviesGlobally(); // Met à jour la home page
+        fetchVoteCount();
+        refreshMoviesGlobally();
       }
     } catch (error) {
       Alert.alert("Erreur", "Une erreur s’est produite lors du vote.");
@@ -115,8 +126,19 @@ export default function MovieDetailScreen() {
       </View>
 
       <Image
-        source={{ uri: `https://image.tmdb.org/t/p/w500${movie.poster_path}` }}
+        source={{
+          uri: movie?.poster_path
+            ? source === "custom" || source === "partner"
+              ? movie.poster_path.startsWith("http")
+                ? movie.poster_path
+                : `http://localhost:5001${movie.poster_path}`
+              : `https://image.tmdb.org/t/p/w500${movie.poster_path}`
+            : "https://via.placeholder.com/500x750.png?text=Image+non+disponible",
+        }}
         style={styles.poster}
+        onError={() =>
+          console.log("❌ Échec du chargement de l’image", movie?.poster_path)
+        }
       />
 
       <Text style={styles.title}>{movie.title}</Text>
@@ -124,7 +146,13 @@ export default function MovieDetailScreen() {
         Sorti le : {movie.release_date?.slice(0, 10)}
       </Text>
       <Text style={styles.sectionTitle}>Résumé</Text>
-      <Text style={styles.overview}>{movie.overview || "Pas de résumé."}</Text>
+      <Text style={styles.overview}>
+        {movie.summary && movie.summary.trim() !== ""
+          ? movie.summary
+          : movie.overview && movie.overview.trim() !== ""
+          ? movie.overview
+          : "Aucune description disponible."}
+      </Text>
 
       <Text style={styles.sectionTitle}>👍 Votes : {voteCount}</Text>
 
@@ -134,7 +162,13 @@ export default function MovieDetailScreen() {
         style={[styles.voteButton, hasVoted && styles.voteButtonDisabled]}
       >
         <Text style={styles.voteButtonText}>
-          {hasVoted ? "Déjà voté" : "Je vote !"}
+          {hasVoted
+            ? "Déjà voté"
+            : !userToken
+            ? "Se connecter pour voter"
+            : userRole !== "user"
+            ? "Vote désactivé"
+            : "Je vote !"}
         </Text>
       </TouchableOpacity>
     </ScrollView>

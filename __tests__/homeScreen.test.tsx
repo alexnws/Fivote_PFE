@@ -1,6 +1,6 @@
 import React from "react";
 import { render, waitFor } from "@testing-library/react-native";
-import HomeScreen from "../app/(tabs)/index";
+import HomeScreen from "../app/(tabs)";
 import { VoteProvider } from "../app/contexts/VoteContext";
 import fetchMock from "jest-fetch-mock";
 

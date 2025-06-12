@@ -17,7 +17,7 @@ module.exports = (req, res, next) => {
       return res.status(403).json({ message: "Accès réservé aux partenaires" });
     }
 
-    req.user = decoded; // contient { id, role }
+    req.user = decoded;
     next();
   } catch (error) {
     return res.status(403).json({ message: "Token invalide" });

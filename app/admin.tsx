@@ -7,10 +7,13 @@ import {
   TextInput,
   Pressable,
   ScrollView,
-  StyleSheet,
+  TouchableOpacity,
 } from "react-native";
 import { UserContext } from "./contexts/userContext";
 import { useRouter } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
+
+import styles from "../styles/adminScreen";
 
 export default function AdminScreen() {
   const { userToken, userRole } = useContext(UserContext)!;
@@ -21,6 +24,7 @@ export default function AdminScreen() {
   const [title, setTitle] = useState("");
   const [year, setYear] = useState("");
   const [posterUrl, setPosterUrl] = useState("");
+  const [summary, setSummary] = useState("");
 
   const router = useRouter();
 
@@ -60,7 +64,7 @@ export default function AdminScreen() {
   }, []);
 
   const handleAddMovie = async () => {
-    if (!title || !year || !posterUrl) {
+    if (!title || !year || !posterUrl || !summary) {
       Alert.alert("Champs manquants", "Veuillez renseigner tous les champs.");
       return;
     }
@@ -72,7 +76,7 @@ export default function AdminScreen() {
           "Content-Type": "application/json",
           Authorization: `Bearer ${userToken}`,
         },
-        body: JSON.stringify({ title, year, posterUrl }),
+        body: JSON.stringify({ title, year, posterUrl, summary }),
       });
 
       const data = await res.json();
@@ -83,7 +87,7 @@ export default function AdminScreen() {
         Alert.alert("Succès", "Film ajouté avec succès !", [
           {
             text: "OK",
-            onPress: () => router.push("/"), //redirection vers page d’accueil
+            onPress: () => router.push("/"),
           },
         ]);
       }
@@ -97,10 +101,15 @@ export default function AdminScreen() {
     return (
       <ActivityIndicator size="large" color="black" style={{ marginTop: 40 }} />
     );
+
   if (!access) return <Text style={styles.error}>⛔ Accès refusé</Text>;
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
+      <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
+        <Ionicons name="arrow-back" size={28} color="black" />
+      </TouchableOpacity>
+
       <Text style={styles.title}>🎬 Interface Admin</Text>
 
       <Pressable
@@ -127,6 +136,13 @@ export default function AdminScreen() {
           />
           <TextInput
             style={styles.input}
+            placeholder="Résumé"
+            value={summary}
+            onChangeText={setSummary}
+            multiline
+          />
+          <TextInput
+            style={styles.input}
             placeholder="URL de l’affiche"
             value={posterUrl}
             onChangeText={setPosterUrl}
@@ -139,52 +155,3 @@ export default function AdminScreen() {
     </ScrollView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    padding: 20,
-    backgroundColor: "#fff",
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: "bold",
-    marginBottom: 20,
-    textAlign: "center",
-  },
-  addButton: {
-    backgroundColor: "#1e90ff",
-    padding: 12,
-    borderRadius: 8,
-    alignItems: "center",
-    marginBottom: 20,
-  },
-  addButtonText: {
-    color: "white",
-    fontWeight: "bold",
-    fontSize: 16,
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: "#ccc",
-    padding: 12,
-    borderRadius: 8,
-    marginBottom: 12,
-  },
-  submitButton: {
-    backgroundColor: "black",
-    padding: 12,
-    borderRadius: 8,
-    alignItems: "center",
-  },
-  submitButtonText: {
-    color: "white",
-    fontWeight: "bold",
-    fontSize: 16,
-  },
-  error: {
-    color: "red",
-    fontSize: 16,
-    textAlign: "center",
-    marginTop: 20,
-  },
-});

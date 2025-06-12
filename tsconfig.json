@@ -11,6 +11,7 @@
     "**/*.tsx",
     ".expo/types/**/*.ts",
     "expo-env.d.ts",
-    "styles/MovieDetailScreen.js"
+    "styles/MovieDetailScreen.js",
+    "testMongodb.js"
   ]
 }

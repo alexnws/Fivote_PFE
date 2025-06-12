@@ -19,7 +19,7 @@ const isAdmin = (req, res, next) => {
       return res.status(403).json({ message: "Accès refusé (non admin)" });
     }
 
-    req.user = decoded; // Ajout dans req pour les prochaines étapes
+    req.user = decoded;
     next();
   } catch (error) {
     console.error("❌ Erreur de token admin :", error);

@@ -7,10 +7,10 @@ const {
 } = require("../controllers/voteController");
 const auth = require("../middlewares/auth");
 
-// Nouveau : tous les compteurs de vote
+// tous les compteurs de vote
 router.get("/counts", getAllVoteCounts);
 
-// Nouveau : compteur pour un film spécifique
+// compteur pour un film spécifique
 router.get("/:movieId", getVoteCountForMovie);
 
 // Voter

@@ -198,9 +198,17 @@ export default function HomeScreen() {
                 >
                   <Image
                     source={{
-                      uri: `https://image.tmdb.org/t/p/w500${item.poster_path}`,
+                      uri:
+                        item.source === "tmdb"
+                          ? `https://image.tmdb.org/t/p/w500${item.poster_path}`
+                          : item.poster_path?.startsWith("http")
+                          ? item.poster_path
+                          : `http://localhost:5001${item.poster_path}`,
                     }}
                     style={styles.poster}
+                    onError={() =>
+                      console.log("❌ Image non chargée :", item.poster_path)
+                    }
                   />
                 </Pressable>
 

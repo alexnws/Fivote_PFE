@@ -3,8 +3,8 @@ const mongoose = require("mongoose");
 const MovieSchema = new mongoose.Schema({
   id: {
     type: Number,
-    required: true,
     unique: true,
+    sparse: true, // Pour éviter les erreurs si id est absent (films manuels)
   },
   title: {
     type: String,
@@ -17,6 +17,10 @@ const MovieSchema = new mongoose.Schema({
   poster_path: {
     type: String,
     required: true,
+  },
+  summary: {
+    type: String, // ✅ Ajoute ce champ pour la description
+    default: "",
   },
   voteCount: {
     type: Number,

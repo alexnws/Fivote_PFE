@@ -14,7 +14,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Ionicons } from "@expo/vector-icons";
 
-//Import du UserContext
+// Import du UserContext
 import { UserContext } from "../contexts/userContext";
 
 export default function LoginScreen() {
@@ -23,7 +23,7 @@ export default function LoginScreen() {
 
   const router = useRouter();
 
-  //Accès aux fonctions de contexte utilisateur
+  // Accès aux fonctions de contexte utilisateur
   const { setUserToken, refreshUser } = useContext(UserContext)!;
 
   const handleLogin = async () => {
@@ -47,10 +47,10 @@ export default function LoginScreen() {
       }
 
       if (data.token) {
-        //Sauvegarde et MAJ du contexte
+        // Sauvegarde et MAJ du contexte
         await AsyncStorage.setItem("token", data.token);
         setUserToken(data.token);
-        refreshUser(); //met à jour userRole
+        refreshUser(); // met à jour userRole
 
         Alert.alert("Succès", "Connexion réussie");
         router.push("/");
@@ -104,6 +104,19 @@ export default function LoginScreen() {
       <Pressable style={styles.button} onPress={handleLogin}>
         <Text style={styles.buttonText}>Se connecter</Text>
       </Pressable>
+
+      {/* 🔽 Lien vers l'inscription */}
+      <View style={{ marginTop: 20, alignItems: "center" }}>
+        <Text style={{ fontSize: 14 }}>
+          Pas de compte ?{" "}
+          <Text
+            onPress={() => router.push("/register")}
+            style={{ color: "#1e90ff", fontWeight: "bold" }}
+          >
+            S’inscrire
+          </Text>
+        </Text>
+      </View>
     </SafeAreaView>
   );
 }

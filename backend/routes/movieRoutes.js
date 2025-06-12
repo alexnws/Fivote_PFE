@@ -1,8 +1,9 @@
+// routes/movies.js
 const express = require("express");
 const router = express.Router();
 const Movie = require("../models/Movie");
 
-//GET tous les films (utilisé dans page d’accueil)
+// GET tous les films (page d’accueil)
 router.get("/movies", async (req, res) => {
   try {
     const movies = await Movie.find();
@@ -13,27 +14,47 @@ router.get("/movies", async (req, res) => {
   }
 });
 
-//GET un film par ID (utilisé dans [id].tsx)
+// GET un film par ID (page de détail [id].tsx)
 router.get("/movies/:id", async (req, res) => {
   const { id } = req.params;
-  console.log("🔍 Recherche film avec ID :", id); // 🐛 log de debug
+  console.log("🔍 Recherche film avec ID :", id);
 
   try {
-    const movie = await Movie.findOne({ id: Number(id) });
+    let movie = null;
+
+    if (id.length === 24) {
+      movie = await Movie.findById(id);
+    }
 
     if (!movie) {
-      console.log("❌ Film introuvable avec ID :", id);
+      movie = await Movie.findOne({ id: isNaN(id) ? id : Number(id) });
+    }
+
+    if (!movie) {
       return res.status(404).json({ message: "Film introuvable" });
     }
 
-    console.log("✅ Film trouvé :", movie);
-    res.json(movie);
+    const formatted = {
+      id: movie.id || movie._id,
+      title: movie.title || "Titre inconnu",
+      overview: movie.overview || "", // de TMDB
+      summary: movie.summary || "", // de ta base (admin/partner)
+      release_date:
+        movie.release_date ||
+        (movie.year ? `${movie.year}-01-01` : "0000-01-01"),
+      poster_path: movie.poster_path || movie.posterUrl || null,
+      voteCount: typeof movie.voteCount === "number" ? movie.voteCount : 0,
+    };
+
+    console.log("✅ Film trouvé :", formatted);
+    res.json(formatted);
   } catch (err) {
     console.error("❌ Erreur récupération film :", err);
     res.status(500).json({ message: "Erreur serveur" });
   }
 });
-//GET /api/cinema-movies : films ajoutés par les partenaires
+
+// GET tous les films ajoutés par les partenaires
 router.get("/cinema-movies", async (req, res) => {
   try {
     const partnerMovies = await Movie.find({ cinemaId: { $ne: null } });

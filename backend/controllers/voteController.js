@@ -47,11 +47,20 @@ exports.voteForMovie = async (req, res) => {
     const newVote = new Vote({ userId, movieId });
     await newVote.save();
 
-    // Si c’est un film local, on incrémente aussi voteCount
-    await Movie.findOneAndUpdate(
-      { id: Number(movieId) },
-      { $inc: { voteCount: 1 } }
-    );
+    // Gère les deux cas : id numérique (TMDB) ou ObjectId (_id)
+    const isMongoId =
+      typeof movieId === "string" &&
+      movieId.length === 24 &&
+      /^[a-f\d]{24}$/i.test(movieId);
+
+    if (isMongoId) {
+      await Movie.findByIdAndUpdate(movieId, { $inc: { voteCount: 1 } });
+    } else {
+      await Movie.findOneAndUpdate(
+        { id: Number(movieId) },
+        { $inc: { voteCount: 1 } }
+      );
+    }
 
     res.status(201).json({ message: "Vote enregistré" });
   } catch (err) {
